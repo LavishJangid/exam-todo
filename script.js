@@ -1,146 +1,314 @@
-// Select DOM Elements
-const input = document.getElementById('todo-input');
-const addBtn = document.getElementById('add-btn');
-const list = document.getElementById('todo-list');
-const timerElement = document.getElementById("timer");
-const examDateInput = document.getElementById("exam-date");
+/* ---------------------------
+   App: Exam Workspace (vanilla JS)
+   features:
+   - sidebar nav
+   - todos CRUD (localStorage)
+   - exam date picker + countdown (localStorage)
+   - Pomodoro-like timer (persistent config)
+   - notes editor (autosave to localStorage)
+   - export data button
+   --------------------------- */
 
-// Load saved todos
-const saved = localStorage.getItem('todos');
-const todos = saved ? JSON.parse(saved) : [];
+/* ------------- Utilities ------------- */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-// Save todos
-function saveTodos() {
-    localStorage.setItem('todos', JSON.stringify(todos));
-}
+/* ------------- Elements ------------- */
+const navItems = $$('.nav-item');
+const views = $$('.view');
+const pageTitle = $('#page-title');
 
-// Create todo node
-function createTodoNode(todo, index) {
+const todoInput = $('#todo-input');
+const addTodoBtn = $('#add-todo');
+const todoListEl = $('#todo-list');
+
+const examDateInput = $('#exam-date');
+const countdownDisplay = $('#countdown');
+const examDateDisplay = $('#exam-date-display');
+const examCountdown = $('#exam-countdown');
+const clearExamBtn = $('#clear-exam');
+
+const timerViewMode = $('#timer-mode');
+const timerClock = $('#timer-clock');
+const startPauseBtn = $('#start-pause');
+const resetTimerBtn = $('#reset-timer');
+const studyMinInput = $('#study-min');
+const breakMinInput = $('#break-min');
+
+const noteTitle = $('#note-title');
+const noteBody = $('#note-body');
+const saveNoteBtn = $('#save-note');
+const clearNoteBtn = $('#clear-note');
+
+const exportBtn = $('#export-btn');
+
+/* ------------- Storage Keys ------------- */
+const STORAGE = {
+  TODOS: 'ew_todos_v1',
+  EXAM: 'ew_exam_v1',
+  TIMER: 'ew_timer_v1',
+  NOTES: 'ew_notes_v1'
+};
+
+/* ========== NAVIGATION ========== */
+navItems.forEach(btn => {
+  btn.addEventListener('click', () => {
+    navItems.forEach(n => n.classList.remove('active'));
+    btn.classList.add('active');
+
+    const view = btn.dataset.view;
+    views.forEach(v => v.classList.remove('active'));
+    const target = $(`#view-${view}`);
+    if (target) target.classList.add('active');
+
+    pageTitle.textContent = btn.textContent.replace('📘','To-Do').trim();
+  });
+});
+
+/* ========== TODOS ========== */
+let todos = JSON.parse(localStorage.getItem(STORAGE.TODOS) || '[]');
+
+function saveTodos(){ localStorage.setItem(STORAGE.TODOS, JSON.stringify(todos)); }
+function renderTodos(){
+  todoListEl.innerHTML = '';
+  todos.forEach((t,i) => {
     const li = document.createElement('li');
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = !!todo.completed;
+    const left = document.createElement('div'); left.className='todo-left';
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!t.completed;
+    const span = document.createElement('div'); span.className='todo-text'; span.textContent = t.text;
+    if (t.completed) span.classList.add('completed');
 
-    const textSpan = document.createElement('span');
-    textSpan.textContent = todo.text;
-    textSpan.style.margin = '0 8px';
-    if (todo.completed) textSpan.style.textDecoration = 'line-through';
+    cb.addEventListener('change', () => {
+      t.completed = cb.checked;
+      if (t.completed) span.classList.add('completed'); else span.classList.remove('completed');
+      saveTodos();
+    });
 
-    checkbox.addEventListener("change", () => {
-        todo.completed = checkbox.checked;
-        textSpan.style.textDecoration = todo.completed ? 'line-through' : '';
+    // double click inline edit
+    span.addEventListener('dblclick', () => {
+      const newText = prompt('Edit task', t.text);
+      if (newText !== null) {
+        t.text = newText.trim();
+        span.textContent = t.text;
         saveTodos();
+      }
     });
 
-    textSpan.addEventListener("dblclick", () => {
-        const newText = prompt("Edit todo", todo.text);
-        if (newText !== null) {
-            todo.text = newText.trim();
-            textSpan.textContent = todo.text;
-            saveTodos();
-        }
-    });
+    left.appendChild(cb); left.appendChild(span);
 
-    const delBtn = document.createElement('button');
-    delBtn.textContent = "Delete";
+    const actions = document.createElement('div'); actions.className='todo-actions';
+    const delBtn = document.createElement('button'); delBtn.className='ghost'; delBtn.textContent='Delete';
     delBtn.addEventListener('click', () => {
-        todos.splice(index, 1);
-        render();
-        saveTodos();
+      todos.splice(i,1); saveTodos(); renderTodos();
     });
 
-    li.appendChild(checkbox);
-    li.appendChild(textSpan);
-    li.appendChild(delBtn);
-
-    return li;
+    actions.appendChild(delBtn);
+    li.appendChild(left); li.appendChild(actions);
+    todoListEl.appendChild(li);
+  });
 }
 
-// Render todos
-function render() {
-    list.innerHTML = '';
-    todos.forEach((todo, index) => {
-        const node = createTodoNode(todo, index);
-        list.appendChild(node);
-    });
+function addTodo(){
+  const text = todoInput.value.trim();
+  if (!text) return;
+  todos.push({ text, completed: false, created: Date.now() });
+  todoInput.value = '';
+  saveTodos();
+  renderTodos();
+}
+addTodoBtn.addEventListener('click', addTodo);
+todoInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
+
+renderTodos();
+
+/* ========== EXAM DATE + COUNTDOWN ========== */
+let exam = JSON.parse(localStorage.getItem(STORAGE.EXAM) || 'null');
+
+function setExamDate(dateString){
+  if (!dateString) { exam = null; localStorage.removeItem(STORAGE.EXAM); }
+  else { exam = { date: dateString }; localStorage.setItem(STORAGE.EXAM, JSON.stringify(exam)); }
+  refreshExamUI();
 }
 
-// Add todo
-function addTodo() {
-    const text = input.value.trim();
-    if (!text) return;
-    todos.push({ text: text, completed: false });
-    input.value = '';
-    render();
-    saveTodos();
+function refreshExamUI(){
+  if (exam && exam.date){
+    examDateInput.value = exam.date;
+    examDateDisplay.textContent = exam.date;
+  } else {
+    examDateInput.value = '';
+    examDateDisplay.textContent = '—';
+  }
 }
-
-addBtn.addEventListener("click", addTodo);
-input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') addTodo();
+examDateInput.addEventListener('change', () => {
+  const val = examDateInput.value;
+  if (val) setExamDate(val);
+  else setExamDate(null);
 });
-render();
 
-// ======= Countdown Timer =======
-let examDate = localStorage.getItem("examDate") || new Date().toISOString().slice(0,10);
-examDateInput.value = examDate;
+/* countdown updater */
+function formatTimeLeft(ms){
+  if (ms <= 0) return '0d 0h 0m 0s';
+  const days = Math.floor(ms / (1000*60*60*24));
+  const hours = Math.floor((ms % (1000*60*60*24)) / (1000*60*60));
+  const mins = Math.floor((ms % (1000*60*60)) / (1000*60));
+  const secs = Math.floor((ms % (1000*60)) / 1000);
+  return `${days}d ${hours}h ${mins}m ${secs}s`;
+}
 
-function updateCountdown() {
-    const now = new Date().getTime();
-    const target = new Date(examDate).getTime();
-    const distance = target - now;
+function updateCountdownTick(){
+  const now = Date.now();
+  if (exam && exam.date){
+    const target = new Date(exam.date + 'T00:00:00').getTime();
+    const left = target - now;
+    examCountdown.textContent = left > 0 ? formatTimeLeft(left) : 'EXAM DAY!';
+    countdownDisplay.textContent = (left>0) ? formatTimeLeft(left) : 'EXAM DAY!';
+  } else {
+    examCountdown.textContent = '—';
+    countdownDisplay.textContent = 'No date set';
+  }
+}
+setInterval(updateCountdownTick, 1000);
+updateCountdownTick();
+refreshExamUI();
 
-    if (distance < 0) {
-        timerElement.textContent = "EXAM TIME!";
-        return;
+clearExamBtn && clearExamBtn.addEventListener('click', () => {
+  setExamDate(null);
+  updateCountdownTick();
+});
+
+/* ========== TIMER (Pomodoro-ish) ========== */
+let timerState = JSON.parse(localStorage.getItem(STORAGE.TIMER) || 'null') || {
+  running:false,
+  mode:'study', // 'study' or 'break'
+  remaining: 25*60,
+  studyMin:25,
+  breakMin:5
+};
+
+function saveTimer(){ localStorage.setItem(STORAGE.TIMER, JSON.stringify(timerState)); }
+function updateTimerUI(){
+  const mm = String(Math.floor(timerState.remaining/60)).padStart(2,'0');
+  const ss = String(timerState.remaining%60).padStart(2,'0');
+  timerClock.textContent = `${mm}:${ss}`;
+  timerViewMode.textContent = timerState.mode === 'study' ? 'Study' : 'Break';
+  studyMinInput.value = timerState.studyMin;
+  breakMinInput.value = timerState.breakMin;
+  startPauseBtn.textContent = timerState.running ? 'Pause' : 'Start';
+}
+
+/* start/pause */
+let timerInterval = null;
+function startTimer(){
+  if (timerState.running) return;
+  timerState.running = true;
+  saveTimer();
+  timerInterval = setInterval(() => {
+    if (timerState.remaining <= 0){
+      // switch mode
+      timerState.mode = timerState.mode === 'study' ? 'break' : 'study';
+      timerState.remaining = (timerState.mode === 'study' ? timerState.studyMin : timerState.breakMin) * 60;
+      // small notification (if allowed)
+      try { if (Notification && Notification.permission === 'granted') new Notification('Timer', {body: timerState.mode === 'study' ? 'Study time!' : 'Break time!'}) } catch(e){}
+    } else {
+      timerState.remaining -= 1;
     }
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    timerElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    saveTimer(); updateTimerUI();
+  }, 1000);
 }
 
-setInterval(updateCountdown, 1000);
-updateCountdown();
-
-// Update exam date from input
-examDateInput.addEventListener("change", () => {
-    examDate = examDateInput.value;
-    localStorage.setItem("examDate", examDate);
-    updateCountdown();
+function pauseTimer(){
+  timerState.running = false;
+  clearInterval(timerInterval);
+  timerInterval = null;
+  saveTimer(); updateTimerUI();
+}
+startPauseBtn.addEventListener('click', () => {
+  if (timerState.running) pauseTimer(); else startTimer();
 });
 
-// ======= Motivational Quotes =======
-const quotes = [
-  "Stay focused, your hard work will pay off!",
-  "One step closer every day!",
-  "Consistency is the key to success.",
-  "Don’t count the days, make the days count.",
-  "Your goal is worth every effort!",
-  "Push yourself, because no one else will.",
-  "Dream big, study bigger!"
-];
+resetTimerBtn.addEventListener('click', () => {
+  pauseTimer();
+  timerState.mode = 'study';
+  timerState.remaining = timerState.studyMin * 60;
+  saveTimer(); updateTimerUI();
+});
 
-const quoteElement = document.getElementById("quote");
+/* change config */
+studyMinInput.addEventListener('change', () => {
+  const v = parseInt(studyMinInput.value) || 1;
+  timerState.studyMin = v;
+  if (timerState.mode === 'study') timerState.remaining = v*60;
+  saveTimer(); updateTimerUI();
+});
+breakMinInput.addEventListener('change', () => {
+  const v = parseInt(breakMinInput.value) || 1;
+  timerState.breakMin = v;
+  if (timerState.mode === 'break') timerState.remaining = v*60;
+  saveTimer(); updateTimerUI();
+});
 
-function updateQuote() {
-    // Fade out
-    quoteElement.style.opacity = 0;
+/* initialize timer UI & maybe start if running */
+updateTimerUI();
+if (timerState.running) startTimer();
 
-    setTimeout(() => {
-        // Change text
-        const randomIndex = Math.floor(Math.random() * quotes.length);
-        quoteElement.textContent = quotes[randomIndex];
+/* ========== NOTES ========== */
+let notes = JSON.parse(localStorage.getItem(STORAGE.NOTES) || 'null') || { title:'', body:'' };
 
-        // Fade in
-        quoteElement.style.opacity = 1;
-    }, 1000);
-}
+function saveNotes(){ localStorage.setItem(STORAGE.NOTES, JSON.stringify(notes)); }
+function loadNotes(){ noteTitle.value = notes.title || ''; noteBody.innerHTML = notes.body || ''; }
 
-// Initial quote
-updateQuote();
-setInterval(updateQuote, 60000);
+saveNoteBtn.addEventListener('click', () => {
+  notes.title = noteTitle.value;
+  notes.body = noteBody.innerHTML;
+  saveNotes();
+  alert('Note saved');
+});
+clearNoteBtn.addEventListener('click', () => {
+  if (!confirm('Clear note?')) return;
+  notes = { title:'', body:'' };
+  saveNotes(); loadNotes();
+});
+
+/* autosave notes every 3 seconds when editing */
+let autosaveTimer = null;
+noteBody.addEventListener('input', () => {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => {
+    notes.title = noteTitle.value;
+    notes.body = noteBody.innerHTML;
+    saveNotes();
+  }, 1500);
+});
+noteTitle.addEventListener('input', () => {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => {
+    notes.title = noteTitle.value;
+    notes.body = noteBody.innerHTML;
+    saveNotes();
+  }, 1500);
+});
+
+loadNotes();
+
+/* ========== EXPORT (download JSON) ========== */
+exportBtn.addEventListener('click', () => {
+  const data = {
+    todos, exam, timerState, notes
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'exam-workspace-export.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ======= On load: set exam input if saved ======= */
+if (exam && exam.date) examDateInput.value = exam.date;
+
+/* ======= Ensure UI accurate on start ======= */
+updateTimerUI();
+renderTodos();
+updateCountdownTick();
