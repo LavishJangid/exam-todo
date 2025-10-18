@@ -108,6 +108,8 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,#eaf2ff,#f6f7fb
 
 /* small stuff */
 small{color:var(--muted)}
+
+/* ------------------ RESPONSIVE ------------------ */
 @media (max-width:900px){
   .app{padding:16px;flex-direction:column;align-items:stretch}
   .sidebar{width:100%;display:flex;flex-direction:row;gap:12px;overflow:auto;padding:12px}
@@ -116,7 +118,118 @@ small{color:var(--muted)}
   .top-right{margin-top:8px}
 }
 
-/* Dark mode variables */
+/* ------------------ MOBILE & SMALL SCREENS ------------------ */
+@media (max-width: 480px) {
+  .app {
+    flex-direction: column;
+    padding: 12px;
+    gap: 12px;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px;
+  }
+  .nav {
+    flex-direction: row;
+    gap: 6px;
+  }
+  .nav-item {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+  .sidebar-footer {
+    display: none;
+  }
+  .main {
+    max-width: 100%;
+    flex: 1;
+  }
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .top-left h1 {
+    font-size: 1.1rem;
+  }
+  .top-right {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .exam-label, #exam-date, .countdown {
+    font-size: 0.85rem;
+  }
+  .todo-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  #todo-input, .primary, #add-btn {
+    width: 100%;
+  }
+  .todo-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .todo-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .timer-panel, .timer-display, .timer-config {
+    width: 100%;
+    gap: 6px;
+  }
+  .timer-clock {
+    font-size: 2rem;
+  }
+  #note-title, .note-body {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+  .primary, #add-btn, .todo-actions button {
+    width: 100%;
+  }
+}
+
+/* TABLET / MEDIUM SCREENS */
+@media (max-width: 768px) {
+  #todo-input {
+    width: 70%;
+  }
+  #add-btn {
+    width: 28%;
+  }
+  .todo-list {
+    width: 90%;
+  }
+  .main {
+    max-width: 95%;
+  }
+}
+
+/* FLEX WRAP FOR TODO ITEMS */
+.todo-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  gap: 8px;
+}
+
+/* Prevent text overflow in todo items */
+.todo-text {
+  flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ------------------ DARK MODE ------------------ */
 :root { --is-dark: 0; }
 body.dark {
   --bg: #0b1020;
@@ -128,7 +241,6 @@ body.dark {
   color: #e6eef8;
 }
 
-/* Example elements adapting to dark mode */
 body.dark .panel, body.dark .sidebar { background: var(--panel); color: #e6eef8; }
 body.dark .todo-list li { border-color: rgba(255,255,255,0.03); }
 body.dark .note-body { background: #0b1220; color: #e6eef8; }
