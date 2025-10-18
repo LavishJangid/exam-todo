@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Exam Workspace — Todo • Timer • Notes</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">EW</div>
+        <div class="title">Exam Workspace</div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="todo">📘 To-Do</button>
+        <button class="nav-item" data-view="timer">🕑 Timer</button>
+        <button class="nav-item" data-view="exam">📅 Exam Dates</button>
+        <button class="nav-item" data-view="notes">📝 Notes</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="small">Built for focused studying</div>
+        <button id="export-btn" class="ghost">Export Data</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <div class="top-left">
+          <h1 id="page-title">To-Do</h1>
+        </div>
+
+        <div class="top-right">
+          <label for="exam-date" class="exam-label">Exam date</label>
+          <input type="date" id="exam-date" />
+          <div id="countdown" class="countdown">—</div>
+        </div>
+      </header>
+
+      <!-- VIEWS -->
+      <section class="views">
+        <!-- TODO VIEW -->
+        <section id="view-todo" class="view active">
+          <div class="todo-controls">
+            <input id="todo-input" placeholder="Add a task and press Enter / Add" />
+            <button id="add-todo" class="primary">Add</button>
+          </div>
+
+          <ul id="todo-list" class="todo-list"></ul>
+        </section>
+
+        <!-- TIMER VIEW -->
+        <section id="view-timer" class="view">
+          <div class="timer-panel">
+            <div class="timer-display">
+              <div id="timer-mode" class="timer-mode">Study</div>
+              <div id="timer-clock" class="timer-clock">25:00</div>
+            </div>
+
+            <div class="timer-controls">
+              <button id="start-pause" class="primary">Start</button>
+              <button id="reset-timer" class="ghost">Reset</button>
+            </div>
+
+            <div class="timer-config">
+              <label>Study (min)
+                <input type="number" id="study-min" min="1" value="25" />
+              </label>
+              <label>Break (min)
+                <input type="number" id="break-min" min="1" value="5" />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- EXAM VIEW -->
+        <section id="view-exam" class="view">
+          <div class="exam-panel">
+            <h2>Exam Date & Countdown</h2>
+            <p>Select your exam date using top-right date picker. The countdown updates live.</p>
+            <div class="exam-info">
+              <div>Selected date: <strong id="exam-date-display">—</strong></div>
+              <div>Time left: <strong id="exam-countdown">—</strong></div>
+              <button id="clear-exam" class="ghost">Clear Exam Date</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- NOTES VIEW -->
+        <section id="view-notes" class="view">
+          <div class="notes-panel">
+            <div class="notes-header">
+              <input id="note-title" placeholder="Note title..." />
+              <div class="notes-actions">
+                <button id="save-note" class="primary">Save Note</button>
+                <button id="clear-note" class="ghost">Clear</button>
+              </div>
+            </div>
+
+            <div id="note-body" class="note-body" contenteditable="true" spellcheck="false">
+              Start writing quick revision notes here...
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
