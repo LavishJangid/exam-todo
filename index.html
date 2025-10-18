@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Todo Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="overlay">
+        <h1>Exam Todo Tracker</h1>
+
+        <!-- Exam Date Input -->
+        <div id="exam-date-container">
+            <label for="exam-date">Set your exam date:</label>
+            <input type="date" id="exam-date">
+        </div>
+
+        <p id="countdown">Exam starts in: <span id="timer"></span></p>
+
+        <!-- Todo Input & Add Button -->
+        <div id="todo-input-container">
+            <input type="text" id="todo-input" placeholder="Add your task...">
+            <button id="add-btn">Add</button>
+        </div>
+
+        <!-- Todo List -->
+        <ul id="todo-list"></ul>
+
+        <!-- Motivational Quote -->
+        <div id="quote-box">
+            <p id="quote">“Stay focused, your hard work will pay off!”</p>
+        </div>
+    </div>
+</body>
+<script src="script.js"></script>
+</html>
